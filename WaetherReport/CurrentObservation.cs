@@ -5,7 +5,6 @@
         public Image Image { get; set; }
         public DisplayLocation DisplayLocation { get; set; }
         public ObservationLocation ObservationLocation { get; set; }
-        public Estimated Estimated { get; set; }
         public string StationId { get; set; }
         public string ObservationTime { get; set; }
         public string ObservationTimeRfc822 { get; set; }

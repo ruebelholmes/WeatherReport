@@ -5,7 +5,7 @@ namespace WeatherReport
 {
     public class RootObject
     {
-        public Response Response { get; set; }
+      
         public CurrentObservation CurrentObservation { get; set; }
     }
 

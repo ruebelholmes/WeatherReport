@@ -10,76 +10,76 @@ namespace WeatherReport
 {
     class Program
     {
-        //private static bool _currentObservations;
-
         static void Main(string[] args)
         {
-
-            var client = new RestClient("http://api.wunderground.com/api/e61993d80592339d/");
-            // client.Authenticator = new HttpBasicAuthenticator(username, password);
-
-            var request = new RestRequest("conditions/q/{State}/{City}.json", Method.GET);
-
-            request.AddUrlSegment("State", "AR");
-            request.AddUrlSegment("City", "North_Little_Rock");
-
-            // execute the request
-            IRestResponse response = client.Execute(request);
-            var content = response.Content; // raw content as string
-
-            Console.WriteLine(content);
-
-            Console.ReadLine();
-        }
-    }
-
-    public enum LookupType
-    {
-        Zip,
-        CityState,
-    }
-
-    public class WeatherManger
-    {
-
-        public WeatherInfo GetWeather(string userInput)
-        {
-            //determine which lookup to use
-            LookupType lookupType = FigureOutLookupType(userInput);
-
-
-            ILookup lookup = new WUGLookup();
-            //determine if userINput is a zip or otherwise using regex
-            //if it was a zip string then
-            RootObject result;
-
-            switch (lookupType)
+            while (true)
             {
-                case LookupType.Zip:
-                    result = lookup.GetByZip(userInput);
-                    break;
-                case LookupType.CityState:
-                default:
-                    result = lookup.GetByCityState(userInput);
-                    break;
+                var userInput = GetUserInput();
+                var mgr = new WeatherManager();
+                var conditions = mgr.GetConditions(userInput);
+
+                if (conditions.Any())
+                {
+                    Console.Clear();
+
+                    var forecast = mgr.GetForecast(userInput);
+                    var hurricanes = mgr.GetHurricanes();
+
+                    //display Conditions
+                    Console.WriteLine("\n===Current Conditions===");
+                    Console.WriteLine();
+
+                    foreach (var c in conditions)
+                    {
+                        Console.WriteLine($"{c.CurrentObservation.display_location.city}, " +
+                                          $"{c.CurrentObservation.display_location.state_name} {c.CurrentObservation.display_location.zip}");
+                        Console.WriteLine($"\nOverall: {c.CurrentObservation.weather}");
+                        Console.WriteLine($"\nTemp: {c.CurrentObservation.temperature_string} " +
+                                          $"Feels Like: {c.CurrentObservation.feelslike_string}");
+                        Console.WriteLine($"\nPrecipitaion Today: {c.CurrentObservation.precip_today_string} " +
+                                          $"Humidity: {c.CurrentObservation.relative_humidity}");
+                        Console.WriteLine(
+                            $"\nWind: {c.CurrentObservation.wind_string} Wind Chill: {c.CurrentObservation.windchill_string}");
+                    }
+
+                    //display forecast
+                    Console.WriteLine("\n===10 Day Forecast===");
+                    foreach (var f in forecast)
+                    {
+                        for (int i = 0; i < f.forecast.txt_forecast.forecastday.Count; i++)
+                        {
+                            Console.WriteLine($"\n{f.forecast.txt_forecast.forecastday[i].title}");
+                            Console.WriteLine($"    {f.forecast.txt_forecast.forecastday[i].fcttext}");
+                        }
+                    }
+
+                    //display hurricanes
+                    Console.WriteLine("\n===Hurricanes===");
+
+                    if (hurricanes != null)
+                    {
+                        foreach (var h in hurricanes)
+                        {
+                            Console.WriteLine($"    {h.currenthurricane.storminfo.stormName}");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("     There are no hurricanes at this time");
+                    }
+
+                    Console.ReadLine();
+                }
             }
 
-
-            //map result to weatherinfo
-            var info = new WeatherInfo();
-            //info.Temp = result.CurrentObservations.Temperature + "° F";
-
-            return info;
         }
 
-        private LookupType FigureOutLookupType(string userInput)
+        public static string GetUserInput()
         {
-            //do regex check for zip here.
-            throw new NotImplementedException();
-        }
-    }
+            Console.WriteLine("Please enter a zipcode.");
+            var userInput = Console.ReadLine();
 
-    public class WUGLookup
-    {
+            return userInput;
+        }
     }
 }
